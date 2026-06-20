@@ -11,6 +11,7 @@ public class Intersection {
     private int timer;
     private static final int NORMAL_INTERVAL = 120;
     private static final int EXTENDED_INTERVAL = 200;
+    private static final int REDUCED_INTERVAL = 60;
     private int switchInterval = NORMAL_INTERVAL;
 
     public Intersection(
@@ -61,25 +62,25 @@ public class Intersection {
 
     private void updateSwitchInterval() {
 
+        boolean greenSideCongested;
+        boolean redSideCongested;
+
         if (nsGreen) {
-
-            if (isCongested(northLane)
-                    || isCongested(southLane)) {
-
-                setInterval(EXTENDED_INTERVAL);
-            } else {
-                setInterval(NORMAL_INTERVAL);
-            }
-
+            greenSideCongested = isCongested(northLane) || isCongested(southLane);
+            redSideCongested = isCongested(eastLane) || isCongested(westLane);
         } else {
+            greenSideCongested = isCongested(eastLane) || isCongested(westLane);
+            redSideCongested = isCongested(northLane) || isCongested(southLane);
+        }
 
-            if (isCongested(eastLane)
-                    || isCongested(westLane)) {
-
-                setInterval(EXTENDED_INTERVAL);
-            } else {
-                setInterval(NORMAL_INTERVAL);
-            }
+        if (greenSideCongested) {
+            // la voie verte a besoin de plus de temps pour s'écouler
+            setInterval(EXTENDED_INTERVAL);
+        } else if (redSideCongested) {
+            // la voie rouge sature : on écourte la phase verte actuelle
+            setInterval(REDUCED_INTERVAL);
+        } else {
+            setInterval(NORMAL_INTERVAL);
         }
     }
 
@@ -123,63 +124,54 @@ public class Intersection {
 
     // ---- Calcul de la destination en fonction de l'origine et de la destination
     // ----
-    public Origin getDestination(
-            Origin origin,
-            Direction direction) {
-
+    public Origin getDestination(Origin origin, Direction direction) {
         switch (origin) {
-
             case North:
                 switch (direction) {
                     case AHEAD:
                         return Origin.South;
-
                     case LEFT:
                         return Origin.East;
-
                     case RIGHT:
                         return Origin.West;
                 }
+                break;
 
             case South:
                 switch (direction) {
                     case AHEAD:
                         return Origin.North;
-
                     case LEFT:
                         return Origin.West;
-
                     case RIGHT:
                         return Origin.East;
                 }
+                break;
 
             case East:
                 switch (direction) {
                     case AHEAD:
                         return Origin.West;
-
                     case LEFT:
                         return Origin.South;
-
                     case RIGHT:
                         return Origin.North;
                 }
+                break;
 
             case West:
                 switch (direction) {
                     case AHEAD:
                         return Origin.East;
-
                     case LEFT:
                         return Origin.North;
-
                     case RIGHT:
                         return Origin.South;
                 }
+                break;
         }
 
-        throw new IllegalArgumentException(
-                "Invalid origin or direction");
+        throw new IllegalArgumentException("Invalid origin or direction");
     }
 
     // ---- Cerveau de l'intersection ----
