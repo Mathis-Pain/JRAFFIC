@@ -14,4 +14,16 @@ public class Intersection {
         this.eastLane = eastLane;
         this.westLane = westLane;
     }
+    public Lane getNorthLane(){
+        return northLane;
+    }
+    public Lane getSouthLane(){
+        return southLane;
+    }
+    public Lane getEastLane(){
+        return  eastLane;
+    }
+    public Lane getWestLane(){
+        return westLane;
+    }
 }
