@@ -1,8 +1,17 @@
 public class Intersection {
+    private static final int SAFETY_GAP = 10;
+
     private Lane northLane;
     private Lane southLane;
     private Lane eastLane;
     private Lane westLane;
+
+    private boolean nsGreen;
+
+    private int timer;
+    private static final int NORMAL_INTERVAL = 120;
+    private static final int EXTENDED_INTERVAL = 200;
+    private int switchInterval = NORMAL_INTERVAL;
 
     public Intersection(
             Lane northLane,
@@ -13,5 +22,175 @@ public class Intersection {
         this.southLane = southLane;
         this.eastLane = eastLane;
         this.westLane = westLane;
+
+        this.nsGreen = true;
+        northLane.getTrafficLight().setColor(LightColor.GREEN);
+        southLane.getTrafficLight().setColor(LightColor.GREEN);
+
+        eastLane.getTrafficLight().setColor(LightColor.RED);
+        westLane.getTrafficLight().setColor(LightColor.RED);
+    }
+
+    // ---- Getters & Setters ----
+    public int getInterval() {
+        return this.switchInterval;
+    }
+
+    public void setInterval(int interval) {
+        this.switchInterval = interval;
+    }
+
+    // ---- Gestion des feux ----
+    public void switchLights() {
+        nsGreen = !nsGreen;
+
+        if (nsGreen) {
+            northLane.getTrafficLight().setColor(LightColor.GREEN);
+            southLane.getTrafficLight().setColor(LightColor.GREEN);
+
+            eastLane.getTrafficLight().setColor(LightColor.RED);
+            westLane.getTrafficLight().setColor(LightColor.RED);
+        } else {
+            northLane.getTrafficLight().setColor(LightColor.RED);
+            southLane.getTrafficLight().setColor(LightColor.RED);
+
+            eastLane.getTrafficLight().setColor(LightColor.GREEN);
+            westLane.getTrafficLight().setColor(LightColor.GREEN);
+        }
+    }
+
+    private void updateSwitchInterval() {
+
+        if (nsGreen) {
+
+            if (isCongested(northLane)
+                    || isCongested(southLane)) {
+
+                setInterval(EXTENDED_INTERVAL);
+            } else {
+                setInterval(NORMAL_INTERVAL);
+            }
+
+        } else {
+
+            if (isCongested(eastLane)
+                    || isCongested(westLane)) {
+
+                setInterval(EXTENDED_INTERVAL);
+            } else {
+                setInterval(NORMAL_INTERVAL);
+            }
+        }
+    }
+
+    public void updateTrafficLights() {
+        timer++;
+
+        if (timer >= getInterval()) {
+            switchLights();
+            timer = 0;
+        }
+    }
+
+    // ---- Autorisation de mouvement des véhicules ----
+    public boolean canMove(Lane lane) {
+
+        if (lane == northLane || lane == southLane) {
+            return nsGreen;
+        } else {
+            return !nsGreen;
+        }
+    }
+
+    private void updateLane(Lane lane) {
+
+        boolean canMove = canMove(lane);
+
+        for (Vehicle vehicle : lane.getVehicles()) {
+            vehicle.setMoving(canMove);
+        }
+    }
+
+    // --- Gestion des embouteillages ----
+    private int calculateCapacity(Lane lane) {
+        return lane.getLength()
+                / (Vehicle.getLENGTH() + SAFETY_GAP);
+    }
+
+    public boolean isCongested(Lane lane) {
+        return lane.getVehicles().size() >= calculateCapacity(lane);
+    }
+
+    // ---- Calcul de la destination en fonction de l'origine et de la destination
+    // ----
+    public Origin getDestination(
+            Origin origin,
+            Direction direction) {
+
+        switch (origin) {
+
+            case North:
+                switch (direction) {
+                    case AHEAD:
+                        return Origin.South;
+
+                    case LEFT:
+                        return Origin.East;
+
+                    case RIGHT:
+                        return Origin.West;
+                }
+
+            case South:
+                switch (direction) {
+                    case AHEAD:
+                        return Origin.North;
+
+                    case LEFT:
+                        return Origin.West;
+
+                    case RIGHT:
+                        return Origin.East;
+                }
+
+            case East:
+                switch (direction) {
+                    case AHEAD:
+                        return Origin.West;
+
+                    case LEFT:
+                        return Origin.South;
+
+                    case RIGHT:
+                        return Origin.North;
+                }
+
+            case West:
+                switch (direction) {
+                    case AHEAD:
+                        return Origin.East;
+
+                    case LEFT:
+                        return Origin.North;
+
+                    case RIGHT:
+                        return Origin.South;
+                }
+        }
+
+        throw new IllegalArgumentException(
+                "Invalid origin or direction");
+    }
+
+    // ---- Cerveau de l'intersection ----
+    public void update() {
+        updateSwitchInterval();
+        updateTrafficLights();
+
+        updateLane(northLane);
+        updateLane(southLane);
+        updateLane(westLane);
+        updateLane(eastLane);
+
     }
 }
