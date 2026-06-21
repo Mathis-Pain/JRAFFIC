@@ -2,7 +2,26 @@
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.JFrame;
+
 public class Main {
+
+     public static void createWindow(Intersection intersection) {
+        // Création de la fenêtre principale
+        JFrame frame = new JFrame("Jraffic");
+
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        Window panel = new Window(intersection);
+        frame.add(panel);
+
+        // Ajuste la taille de la fenêtre à la taille préférée du panel
+        frame.pack();
+
+        // Affiche la fenêtre
+        frame.setVisible(true);
+        panel.requestFocusInWindow();
+    }
 
     public static void main(String[] args) {
 
@@ -36,6 +55,8 @@ public class Main {
                 Simulation.update(intersection);
             }
         }, 0, 16);
+
+        createWindow(intersection);
 
         System.out.println("Simulation créée");
 

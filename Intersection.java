@@ -41,6 +41,11 @@ public class Intersection {
         this.switchInterval = interval;
     }
 
+    public Lane getRandomLane() {
+    Lane[] lanes = {northLane, southLane, eastLane, westLane};
+    return lanes[(int)(Math.random() * lanes.length)];
+    }
+
     // ---- Gestion des feux ----
     public void switchLights() {
         nsGreen = !nsGreen;
