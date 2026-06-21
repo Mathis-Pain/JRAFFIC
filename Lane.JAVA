@@ -21,6 +21,9 @@ public class Lane {
   public List<Vehicle> getVehicles() {
     return vehicles;
   }
+  public void addVehicle(Vehicle v) {
+     vehicles.add(v);
+  }
 
   public int getLength() {
     return length;
