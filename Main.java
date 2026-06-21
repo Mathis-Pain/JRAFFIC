@@ -6,7 +6,7 @@ import javax.swing.JFrame;
 
 public class Main {
 
-     public static void createWindow(Intersection intersection) {
+    public static Window createWindow(Intersection intersection) {
         // Création de la fenêtre principale
         JFrame frame = new JFrame("Jraffic");
 
@@ -21,6 +21,8 @@ public class Main {
         // Affiche la fenêtre
         frame.setVisible(true);
         panel.requestFocusInWindow();
+
+        return panel;
     }
 
     public static void main(String[] args) {
@@ -46,17 +48,22 @@ public class Main {
                 southLane,
                 eastLane,
                 westLane);
-// simulation spawn d'un vehicule
+        // simulation spawn d'un vehicule
         Simulation.spawnVehicle(northLane, Direction.AHEAD);
-// timer pour faire avancer les vehicules 
+        // création du panel
+        Window panel = createWindow(intersection);
+        // timer pour faire avancer les vehicules
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             public void run() {
+
+                intersection.update();
+
                 Simulation.update(intersection);
+
+                panel.repaint();
             }
         }, 0, 16);
-
-        createWindow(intersection);
 
         System.out.println("Simulation créée");
 
