@@ -1,6 +1,7 @@
-public enum Origin{
-  North,
-  South,
-   East,
-   West
+
+public enum Origin {
+    North,
+    South,
+    East,
+    West
 }

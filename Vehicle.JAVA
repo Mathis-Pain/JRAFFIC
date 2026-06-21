@@ -75,6 +75,10 @@ public class Vehicle {
     private static final int SAFETY_GAP = 10;
 
     public void move(Vehicle vehicleAhead) {
+        if (currentLane.getTrafficLight().isRed()) {
+            return;
+        }
+
         if (vehicleAhead != null) {
             LaneType type = currentLane.getType();
             int distance;
@@ -88,10 +92,18 @@ public class Vehicle {
             }
         }
         switch (currentLane.getType()) {
-            case NORTH: y -= speed; break;
-            case SOUTH: y += speed; break;
-            case EAST:  x -= speed; break;
-            case WEST:  x += speed; break;
+            case NORTH:
+                y -= speed;
+                break;
+            case SOUTH:
+                y += speed;
+                break;
+            case EAST:
+                x -= speed;
+                break;
+            case WEST:
+                x += speed;
+                break;
         }
     }
 }
