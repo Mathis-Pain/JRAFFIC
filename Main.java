@@ -1,4 +1,5 @@
 
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,8 +28,12 @@ public class Main {
                 southLane,
                 eastLane,
                 westLane);
+
+// choix aléatoire de la direction 
+        Direction[] directions = Direction.values();
+        Direction direction = directions[new Random().nextInt(directions.length)];
 // simulation spawn d'un vehicule
-        Simulation.spawnVehicle(northLane, Direction.AHEAD);
+        Simulation.spawnVehicle(northLane, direction);
 // timer pour faire avancer les vehicules 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
