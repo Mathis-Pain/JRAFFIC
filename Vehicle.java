@@ -5,14 +5,21 @@ public class Vehicle {
     private int speed;
     private CarType color;
     private Lane currentLane;
-    private Origin origin;
+    private final Origin origin;
     private boolean moving = false;
-    private Direction direction;
+    private final Direction direction;
 
     // ---- Option A : anti-collision dans les virages ----
     // true tant que ce vehicule est engage dans le carrefour (entre le moment
     // ou il entre dans la zone et celui ou il en ressort).
     private boolean entered = false;
+
+    // true des que ce vehicule a fini de traverser le carrefour une premiere
+    // fois. Une fois sorti, son feu d'origine ne doit plus jamais l'arreter :
+    // sinon, si ce feu repasse au rouge apres son passage, le vehicule se
+    // figerait pour toujours sur la route de sortie alors qu'il n'a plus
+    // rien a voir avec ce feu.
+    private boolean passedIntersection = false;
 
     // true une fois que le vehicule a negocie son virage (LEFT/RIGHT) au point
     // de pivot ; reste toujours false pour un AHEAD (pas de changement d'axe).
@@ -60,6 +67,13 @@ public class Vehicle {
         return moving;
     }
 
+    // Vrai tant que le vehicule n'a pas encore ete autorise a entrer dans le
+    // carrefour : c'est seulement dans cet etat qu'il compte comme "en
+    // attente" dans la file de sa voie pour le calcul de congestion.
+    public boolean isQueued() {
+        return !entered && !passedIntersection;
+    }
+
     public Direction getDirection() {
         return direction;
     }
@@ -94,8 +108,11 @@ public class Vehicle {
 
         // Un vehicule deja engage dans l'intersection doit pouvoir terminer
         // sa traversee meme si le feu passe au rouge entre-temps, sinon il
-        // resterait bloque au milieu du carrefour.
-        if (currentLane.getTrafficLight().isRed() && !insideZone) {
+        // resterait bloque au milieu du carrefour. Et un vehicule qui a deja
+        // fini de traverser (passedIntersection) ne doit plus jamais etre
+        // arrete par le feu de sa voie d'origine : ce feu ne controle que
+        // l'entree dans le carrefour, pas la route apres la sortie.
+        if (currentLane.getTrafficLight().isRed() && !insideZone && !passedIntersection) {
             return;
         }
 
@@ -145,8 +162,10 @@ public class Vehicle {
             }
         } else if (entered) {
             // Le vehicule a quitte la zone du carrefour : il libere sa place
+            // et n'est plus jamais concerne par le feu de sa voie d'origine.
             intersection.leave(this);
             entered = false;
+            passedIntersection = true;
         }
 
         // ---- Deplacement ----

@@ -4,11 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 public class Simulation {
-
-    // NOTE : move() prend maintenant `intersection` en plus du véhicule de
-    // devant, pour pouvoir réserver une cellule de la grille (Option B,
-    // anti-collision dans les virages) et calculer le côté de sortie via
-    // intersection.getDestination().
     public static void update(Intersection intersection) {
         List<Vehicle> allVehicles = new ArrayList<>();
         allVehicles.addAll(intersection.getNorthLane().getVehicles());
@@ -16,18 +11,26 @@ public class Simulation {
         allVehicles.addAll(intersection.getEastLane().getVehicles());
         allVehicles.addAll(intersection.getWestLane().getVehicles());
 
-        // Distance de sécurité affinée (post-virage) : le "véhicule devant"
-        // n'est plus déduit de la position dans la liste de la voie
-        // d'origine, mais du cap réel (Vehicle.getHeading()) de chaque
-        // véhicule. Ça couvre le cas où deux véhicules venus de voies
-        // d'origine différentes se retrouvent à rouler dans la même
-        // direction après avoir tourné (ex: Nord→gauche et Ouest→tout droit
-        // qui filent tous les deux vers l'Est).
         Map<Vehicle, Vehicle> aheadByHeading = computeVehicleAhead(allVehicles);
 
         for (Vehicle vehicle : allVehicles) {
             vehicle.move(aheadByHeading.get(vehicle), intersection);
         }
+
+        // Une fois qu'un vehicule a completement quitte la zone visible, on le retire
+        for (Vehicle vehicle : allVehicles) {
+            if (hasLeftSimulation(vehicle)) {
+                vehicle.getCurrentLane().removeVehicle(vehicle);
+            }
+        }
+    }
+    private static final int OFFSCREEN_MARGIN = 50;
+
+    private static boolean hasLeftSimulation(Vehicle vehicle) {
+        int x = vehicle.getX();
+        int y = vehicle.getY();
+        return x < -OFFSCREEN_MARGIN || x > 500 + OFFSCREEN_MARGIN
+                || y < -OFFSCREEN_MARGIN || y > 500 + OFFSCREEN_MARGIN;
     }
 
     // Pour chaque cap (Nord/Sud/Est/Ouest), regroupe les véhicules qui roulent
@@ -74,7 +77,11 @@ public class Simulation {
         }
     }
 
-    public static void spawnVehicle(Lane lane, Direction direction) {
+    // Distance minimale qu'il doit y avoir entre le point d'apparition d'un
+    // nouveau vehicule et le vehicule le plus proche deja present sur la voie. 
+    private static final int SAFETY_GAP = 10;
+
+    public static boolean spawnVehicle(Lane lane, Direction direction) {
         int x = 0;
         int y = 0;
         Origin origin = null;
@@ -101,9 +108,28 @@ public class Simulation {
                 break;
         }
 
+        if (!canSpawn(lane, x, y)) {
+            System.out.println("Spawn ignore : pas assez de place pres du point d'apparition.");
+            return false;
+        }
+
         CarType carType = CarType.fromDirection(direction);
         Vehicle v = new Vehicle(x, y, 2, carType, lane, direction, origin);
         lane.addVehicle(v);
+        return true;
+    }
 
+    // Verifie qu'aucun vehicule deja present sur la voie n'est trop proche du point de spawn
+    private static boolean canSpawn(Lane lane, int spawnX, int spawnY) {
+        int minSafeDistance = Vehicle.getLENGTH() + SAFETY_GAP;
+        for (Vehicle vehicle : lane.getVehicles()) {
+            int dx = vehicle.getX() - spawnX;
+            int dy = vehicle.getY() - spawnY;
+            double distance = Math.sqrt((double) (dx * dx + dy * dy));
+            if (distance < minSafeDistance) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -25,6 +25,10 @@ public class Lane {
      vehicles.add(v);
   }
 
+  public void removeVehicle(Vehicle v) {
+     vehicles.remove(v);
+  }
+
   public int getLength() {
     return length;
   }
