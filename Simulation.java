@@ -17,7 +17,7 @@ public class Simulation {
             } else {
                 ahead = northLaneVehicles.get(i - 1);
             }
-            northLaneVehicles.get(i).move(ahead);
+            northLaneVehicles.get(i).move(ahead, intersection);
         }
 
         List<Vehicle> southLaneVehicles = southLane.getVehicles();
@@ -28,7 +28,7 @@ public class Simulation {
             } else {
                 ahead = southLaneVehicles.get(i - 1);
             }
-            southLaneVehicles.get(i).move(ahead);
+            southLaneVehicles.get(i).move(ahead, intersection);
         }
 
         List<Vehicle> eastLaneVehicles = eastLane.getVehicles();
@@ -39,7 +39,7 @@ public class Simulation {
             } else {
                 ahead = eastLaneVehicles.get(i - 1);
             }
-            eastLaneVehicles.get(i).move(ahead);
+            eastLaneVehicles.get(i).move(ahead, intersection);
         }
 
         List<Vehicle> westLaneVehicles = westLane.getVehicles();
@@ -50,7 +50,8 @@ public class Simulation {
             } else {
                 ahead = westLaneVehicles.get(i - 1);
             }
-            westLaneVehicles.get(i).move(ahead);
+            westLaneVehicles.get(i).move(ahead, intersection
+            );
         }
     }
 

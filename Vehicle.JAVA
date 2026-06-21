@@ -74,13 +74,53 @@ public class Vehicle {
 
     private static final int SAFETY_GAP = 10;
 
-    public void move(Vehicle vehicleAhead) {
+    public void move(Vehicle vehicleAhead, Intersection intersection) {
         if (currentLane.getTrafficLight().isRed()) {
             return;
         }
 
+        LaneType type = currentLane.getType();
+        if ((type == LaneType.NORTH && y >= 250)
+                || (type == LaneType.SOUTH && y <= 250)
+                || (type == LaneType.EAST && x <= 250)
+                || (type == LaneType.WEST && x >= 250)) {
+            if (type == LaneType.NORTH) {
+                if (direction == Direction.LEFT) {
+                    currentLane = intersection.getEastLane();
+                }
+                if (direction == Direction.RIGHT) {
+                    currentLane = intersection.getWestLane();
+                }
+            }
+            if (type == LaneType.SOUTH) {
+                if (direction == Direction.LEFT) {
+                    currentLane = intersection.getWestLane();
+                }
+                if (direction == Direction.RIGHT) {
+                    currentLane = intersection.getEastLane();
+                }
+            }
+            if (type == LaneType.EAST) {
+                if (direction == Direction.LEFT) {
+                    currentLane = intersection.getSouthLane();
+                }
+                if (direction == Direction.RIGHT) {
+                    currentLane = intersection.getNorthLane();
+                }
+            }
+            if (type == LaneType.WEST) {
+                if (direction == Direction.LEFT) {
+                    currentLane = intersection.getNorthLane();
+                }
+                if (direction == Direction.RIGHT) {
+                    currentLane = intersection.getSouthLane();
+                }
+            }
+
+        }
+
         if (vehicleAhead != null) {
-            LaneType type = currentLane.getType();
+            type = currentLane.getType();
             int distance;
             if (type == LaneType.NORTH || type == LaneType.SOUTH) {
                 distance = Math.abs(this.y - vehicleAhead.getY());
@@ -91,6 +131,7 @@ public class Vehicle {
                 return;
             }
         }
+
         switch (currentLane.getType()) {
             case NORTH:
                 y -= speed;
