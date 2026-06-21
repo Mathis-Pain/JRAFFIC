@@ -146,5 +146,9 @@ public class Vehicle {
                 x += speed;
                 break;
         }
+        // supression des vehicules de la liste quand ils sortent du cadre 500*500
+        if (x > 500 || x < 0 || y > 500 || y < 0) {
+            currentLane.getVehicles().remove(this);
+        }
     }
 }
