@@ -4,13 +4,13 @@ public class Vehicle {
     private static final int LENGTH = 20;
     private int x, y;
     private int speed;
-    private String color;
+    private CarType color;
     private Lane currentLane;
     private Origin origin;
     private boolean moving = false;
     private Direction direction;
 
-    public Vehicle(int x, int y, int speed, String color, Lane currentLane, Direction direction, Origin origin) {
+    public Vehicle(int x, int y, int speed, CarType color, Lane currentLane, Direction direction, Origin origin) {
         this.x = x;
         this.y = y;
         this.speed = speed;
@@ -32,7 +32,7 @@ public class Vehicle {
         return speed;
     }
 
-    public String getColor() {
+    public CarType getColor() {
         return color;
     }
 

@@ -58,7 +58,6 @@ public class Simulation {
         int x = 0;
         int y = 0;
         Origin origin = null;
-        String color = null;
         switch (lane.getType()) {
             case NORTH:
                 x = 250;
@@ -81,19 +80,9 @@ public class Simulation {
                 origin = Origin.West;
                 break;
         }
-        switch (direction) {
-            case AHEAD:
-                color = "blue";
-                break;
-            case LEFT:
-                color = "yellow";
-                break;
-            case RIGHT:
-                color = "red";
-                break;
-        }
 
-        Vehicle v = new Vehicle(x, y, 2, color, lane, direction, origin);
+       CarType carType = CarType.fromDirection(direction);
+        Vehicle v = new Vehicle(x, y, 2, carType, lane, direction, origin);
         lane.addVehicle(v);
 
     }
