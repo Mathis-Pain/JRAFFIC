@@ -6,6 +6,11 @@ public class Intersection {
     private Lane eastLane;
     private Lane westLane;
 
+    // Grille de réservation de cellules utilisée par Vehicle.move() pour
+    // empêcher deux véhicules d'occuper la même portion de l'intersection
+    // en même temps
+    private final IntersectionGrid grid = new IntersectionGrid();
+
     private boolean nsGreen;
 
     private int timer;
@@ -37,13 +42,34 @@ public class Intersection {
         return this.switchInterval;
     }
 
+    public Lane getNorthLane() {
+        return northLane;
+    }
+
+    public Lane getSouthLane() {
+        return southLane;
+    }
+
+    public Lane getEastLane() {
+        return eastLane;
+    }
+
+    public Lane getWestLane() {
+        return westLane;
+    }
+
+    // Donne accès à la grille de réservation des cellules
+    public IntersectionGrid getGrid() {
+        return grid;
+    }
+
     public void setInterval(int interval) {
         this.switchInterval = interval;
     }
 
     public Lane getRandomLane() {
-    Lane[] lanes = {northLane, southLane, eastLane, westLane};
-    return lanes[(int)(Math.random() * lanes.length)];
+        Lane[] lanes = { northLane, southLane, eastLane, westLane };
+        return lanes[(int) (Math.random() * lanes.length)];
     }
 
     // ---- Gestion des feux ----
@@ -190,16 +216,5 @@ public class Intersection {
         updateLane(eastLane);
 
     }
-    public Lane getNorthLane(){
-        return northLane;
-    }
-    public Lane getSouthLane(){
-        return southLane;
-    }
-    public Lane getEastLane(){
-        return  eastLane;
-    }
-    public Lane getWestLane(){
-        return westLane;
-    }
+
 }

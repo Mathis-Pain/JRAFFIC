@@ -1,4 +1,3 @@
-
 public class Vehicle {
 
     private static final int LENGTH = 20;
@@ -9,6 +8,11 @@ public class Vehicle {
     private Origin origin;
     private boolean moving = false;
     private Direction direction;
+
+    // ---- anti-collision dans les virages ----
+    // Cellule de la grille de l'intersection actuellement réservée par ce
+    // véhicule (null tant qu'il n'est pas entré dans l'intersection).
+    private Cell currentCell = null;
 
     public Vehicle(int x, int y, int speed, CarType color, Lane currentLane, Direction direction, Origin origin) {
         this.x = x;
@@ -74,7 +78,11 @@ public class Vehicle {
 
     private static final int SAFETY_GAP = 10;
 
-    public void move(Vehicle vehicleAhead) {
+    // Le paramètre `grid` permet de vérifier que la prochaine
+    // portion de l'intersection que le véhicule va occuper est libre, afin
+    // d'éviter les collisions entre véhicules dont les trajectoires (lignes
+    // droites, virages à gauche/droite) se croisent.
+    public void move(Vehicle vehicleAhead, IntersectionGrid grid) {
         if (currentLane.getTrafficLight().isRed()) {
             return;
         }
@@ -91,6 +99,31 @@ public class Vehicle {
                 return;
             }
         }
+
+        // ---- Anti-collision dans les virages (réservation de cellule) ----
+        // Tant que le véhicule est dans la zone de l'intersection, il doit
+        // réserver la cellule où il se trouve avant d'avancer. Si la cellule
+        // est déjà occupée par un autre véhicule, il attend, comme s'il avait
+        // un véhicule devant lui (même mécanisme que la distance de sécurité).
+        if (grid.isInsideIntersection(x, y)) {
+            Cell targetCell = grid.getCellAt(x, y);
+
+            if (targetCell != currentCell) {
+                if (!grid.tryEnterCell(this, targetCell)) {
+                    return; // cellule occupée par un autre véhicule : on attend
+                }
+                if (currentCell != null) {
+                    grid.releaseCell(this, currentCell);
+                }
+                currentCell = targetCell;
+            }
+        } else if (currentCell != null) {
+            // Le véhicule a quitté la zone de l'intersection : on libère sa dernière
+            // cellule
+            grid.releaseCell(this, currentCell);
+            currentCell = null;
+        }
+
         switch (currentLane.getType()) {
             case NORTH:
                 y -= speed;
