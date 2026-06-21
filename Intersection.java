@@ -51,7 +51,7 @@ public class Intersection {
         return this.switchInterval;
     }
 
-    // Donne accès aux méthodes de gestion des virages (Option A, anti-collision)
+    // Vrai si (x, y) est dans la zone circulaire du carrefour (rayon INTERSECTION_RADIUS).
     public boolean isInsideIntersection(int x, int y) {
         int dx = x - CENTER_X;
         int dy = y - CENTER_Y;
@@ -93,12 +93,12 @@ public class Intersection {
         insideIntersection.remove(vehicle);
     }
 
-    // ---- Règle de conflit (Option A) ----
-    // Deux véhicules sont en conflit seulement s'ils viennent d'origines
-    // opposées (Nord/Sud ou Est/Ouest) ET que l'un des deux tourne à GAUCHE :
-    // c'est le seul virage dont la trajectoire traverse celle du véhicule
-    // d'en face. Les feux empêchent déjà tout conflit entre Nord/Sud et
-    // Est/Ouest, donc on n'a besoin de vérifier que cette paire d'origines.
+    // ---- Règle de conflit ----
+    // Deux véhicules sont en conflit dans deux cas :
+    // 1. Axes perpendiculaires (N/S vs E/W) : toujours bloqués, car un véhicule
+    //    de la phase précédente peut encore être dans la zone quand le feu change.
+    // 2. Même axe, origines opposées, et exactement l'un des deux tourne à GAUCHE :
+    //    c'est le seul virage dont la trajectoire traverse celle du véhicule d'en face.
     private boolean conflicts(Vehicle a, Vehicle b) {
         // Axes perpendiculaires (N/S vs E/W) : toujours en conflit.
         // Garantit qu'un vehicule E/W attend qu'un N/S ait libere l'intersection

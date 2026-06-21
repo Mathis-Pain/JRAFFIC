@@ -146,13 +146,18 @@ public class Window extends JPanel implements KeyListener, MouseListener, MouseM
 
     // ---- Feux de circulation ----
     private void drawTrafficLights(Graphics2D g2) {
-        drawLight(g2, CENTER_X - 10, CENTER_Y - ROAD_HALF - LIGHT_OFFSET,
+        // Feux dans le coin d'herbe à droite de la voie entrante :
+        // Nord  (va vers sud) : coin NW  — x < bord gauche, y < bord haut
+        // Sud   (va vers nord): coin SE  — x > bord droit,  y > bord bas
+        // Est   (va vers ouest): coin NE — x > bord droit,  y < bord haut
+        // Ouest (va vers est) : coin SW  — x < bord gauche, y > bord bas
+        drawLight(g2, CENTER_X - ROAD_HALF - LIGHT_OFFSET, CENTER_Y - ROAD_HALF - LIGHT_OFFSET,
                 intersection.getNorthLane().getTrafficLight().getColor());
-        drawLight(g2, CENTER_X + 10, CENTER_Y + ROAD_HALF + LIGHT_OFFSET,
+        drawLight(g2, CENTER_X + ROAD_HALF + LIGHT_OFFSET, CENTER_Y + ROAD_HALF + LIGHT_OFFSET,
                 intersection.getSouthLane().getTrafficLight().getColor());
-        drawLight(g2, CENTER_X + ROAD_HALF + LIGHT_OFFSET, CENTER_Y - 10,
+        drawLight(g2, CENTER_X + ROAD_HALF + LIGHT_OFFSET, CENTER_Y - ROAD_HALF - LIGHT_OFFSET,
                 intersection.getEastLane().getTrafficLight().getColor());
-        drawLight(g2, CENTER_X - ROAD_HALF - LIGHT_OFFSET, CENTER_Y + 10,
+        drawLight(g2, CENTER_X - ROAD_HALF - LIGHT_OFFSET, CENTER_Y + ROAD_HALF + LIGHT_OFFSET,
                 intersection.getWestLane().getTrafficLight().getColor());
     }
 
