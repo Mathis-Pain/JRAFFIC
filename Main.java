@@ -1,3 +1,4 @@
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -47,8 +48,10 @@ public class Main {
                 southLane,
                 eastLane,
                 westLane);
-        // simulation spawn d'un vehicule
-        Simulation.spawnVehicle(northLane, Direction.AHEAD);
+        // simulation spawn d'un vehicule avec direction aleatoire
+        Direction[] directions = Direction.values();
+        Direction randomDirection = directions[new Random().nextInt(directions.length)];
+        Simulation.spawnVehicle(northLane, randomDirection);
         // création du panel
         Window panel = createWindow(intersection);
         // timer pour faire avancer les vehicules

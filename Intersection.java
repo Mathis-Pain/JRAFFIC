@@ -15,7 +15,6 @@ public class Intersection {
     private static final int CENTER_X = 250;
     private static final int CENTER_Y = 250;
     private static final int INTERSECTION_RADIUS = 60; // zone où la règle de conflit s'applique
-    private static final int PIVOT_RADIUS = 5; // distance au centre à partir de laquelle le véhicule a fini son virage
 
     // Véhicules actuellement engagés dans le carrefour (entrés mais pas encore
     // sortis)
@@ -59,12 +58,18 @@ public class Intersection {
         return dx * dx + dy * dy <= INTERSECTION_RADIUS * INTERSECTION_RADIUS;
     }
 
-    // Indique si le véhicule est arrivé au point de pivot (proche du centre),
-    // là où un virage LEFT/RIGHT doit changer d'axe de déplacement.
-    public boolean isAtPivot(int x, int y) {
-        int dx = x - CENTER_X;
-        int dy = y - CENTER_Y;
-        return dx * dx + dy * dy <= PIVOT_RADIUS * PIVOT_RADIUS;
+    // Pivot au coordonnée exacte de la voie de destination pour que le véhicule
+    // se retrouve sur la bonne voie après son virage.
+    // Voies : southbound x=220, northbound x=270, westbound y=220, eastbound y=270.
+    public boolean isAtPivot(int x, int y, Origin origin, Direction direction) {
+        final int TOL = 3;
+        switch (origin) {
+            case North: return (direction == Direction.LEFT) ? y >= 270 - TOL : y >= 220 - TOL;
+            case South: return (direction == Direction.LEFT) ? y <= 220 + TOL : y <= 270 + TOL;
+            case East:  return (direction == Direction.LEFT) ? x <= 220 + TOL : x <= 270 + TOL;
+            case West:  return (direction == Direction.LEFT) ? x >= 270 - TOL : x >= 220 - TOL;
+        }
+        return false;
     }
 
     // Un véhicule peut entrer dans le carrefour si aucun véhicule déjà engagé
@@ -95,16 +100,32 @@ public class Intersection {
     // d'en face. Les feux empêchent déjà tout conflit entre Nord/Sud et
     // Est/Ouest, donc on n'a besoin de vérifier que cette paire d'origines.
     private boolean conflicts(Vehicle a, Vehicle b) {
+        // Axes perpendiculaires (N/S vs E/W) : toujours en conflit.
+        // Garantit qu'un vehicule E/W attend qu'un N/S ait libere l'intersection
+        // apres un changement de feu (et vice-versa).
+        boolean aIsNS = (a.getOrigin() == Origin.North || a.getOrigin() == Origin.South);
+        boolean bIsNS = (b.getOrigin() == Origin.North || b.getOrigin() == Origin.South);
+        if (aIsNS != bIsNS) {
+            return true;
+        }
+
+        // Meme axe, origines opposees.
         boolean oppositeOrigins = (a.getOrigin() == Origin.North && b.getOrigin() == Origin.South)
                 || (a.getOrigin() == Origin.South && b.getOrigin() == Origin.North)
                 || (a.getOrigin() == Origin.East && b.getOrigin() == Origin.West)
                 || (a.getOrigin() == Origin.West && b.getOrigin() == Origin.East);
 
-        if (!oppositeOrigins) {
-            return false;
-        }
+        if (!oppositeOrigins) return false;
 
-        return a.getDirection() == Direction.LEFT || b.getDirection() == Direction.LEFT;
+        // Virage a droite : ne croise jamais les trajectoires adverses.
+        if (a.getDirection() == Direction.RIGHT) return false;
+
+        // Exactement un des deux tourne a gauche : leurs trajectoires se croisent.
+        // AHEAD vs AHEAD : pas de conflit (voies x=220 / x=270 separees).
+        // LEFT vs LEFT  : pas de conflit (NL→East y=270, SL→West y=220 ne se croisent pas).
+        boolean aLeft = a.getDirection() == Direction.LEFT;
+        boolean bLeft = b.getDirection() == Direction.LEFT;
+        return aLeft != bLeft;
     }
 
     public void setInterval(int interval) {
@@ -166,6 +187,17 @@ public class Intersection {
             switchLights();
             timer = 0;
         }
+    }
+
+    public boolean wouldEnterIntersection(int x, int y, Origin heading, int speed) {
+        int nx = x, ny = y;
+        switch (heading) {
+            case South: ny += speed; break;
+            case North: ny -= speed; break;
+            case West:  nx -= speed; break;
+            case East:  nx += speed; break;
+        }
+        return isInsideIntersection(nx, ny);
     }
 
     // ---- Autorisation de mouvement des véhicules ----

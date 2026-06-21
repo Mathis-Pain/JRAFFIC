@@ -18,8 +18,8 @@ public class IntersectionGrid {
     // routes, etc.). Adapte CENTER_X / CENTER_Y / CELL_SIZE à ton rendu, ou
     // donne-moi le fichier qui définit la géométrie de la scène pour que je
     // les calibre précisément.
-    private static final int CENTER_X = 400;
-    private static final int CENTER_Y = 400;
+    private static final int CENTER_X = 250;
+    private static final int CENTER_Y = 250;
     private static final int CELL_SIZE = 40; // largeur approximative d'une cellule
 
     // Cellule -> véhicule qui l'occupe actuellement (une seule case réservée à la

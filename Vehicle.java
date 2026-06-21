@@ -1,3 +1,4 @@
+
 public class Vehicle {
 
     private static final int LENGTH = 20;
@@ -24,6 +25,11 @@ public class Vehicle {
     // true une fois que le vehicule a negocie son virage (LEFT/RIGHT) au point
     // de pivot ; reste toujours false pour un AHEAD (pas de changement d'axe).
     private boolean turned = false;
+
+    // true des que le vehicule est physiquement a l'interieur de la zone du
+    // carrefour (distincte de `entered` qui peut etre mis a true un tick avant
+    // l'entree physique, lors du check pre-zone).
+    private boolean physicallyInside = false;
 
     // Cote vers lequel le vehicule se dirige une fois qu'il a tourne, calcule
     // une seule fois au moment du virage via Intersection.getDestination().
@@ -78,6 +84,10 @@ public class Vehicle {
         return direction;
     }
 
+    public boolean isTurned() {
+        return turned;
+    }
+
     public void setX(int x) {
         this.x = x;
     }
@@ -98,7 +108,7 @@ public class Vehicle {
         return LENGTH;
     }
 
-    private static final int SAFETY_GAP = 10;
+    private static final int SAFETY_GAP = 20;
 
     // Le parametre `intersection` permet de verifier les conflits de
     // trajectoire (Option A, anti-collision dans les virages) ainsi que de
@@ -112,7 +122,8 @@ public class Vehicle {
         // fini de traverser (passedIntersection) ne doit plus jamais etre
         // arrete par le feu de sa voie d'origine : ce feu ne controle que
         // l'entree dans le carrefour, pas la route apres la sortie.
-        if (currentLane.getTrafficLight().isRed() && !insideZone && !passedIntersection) {
+        if (currentLane.getTrafficLight().isRed() && !insideZone && !entered && !passedIntersection
+                && intersection.wouldEnterIntersection(getFrontX(), getFrontY(), getHeading(), speed)) {
             return;
         }
 
@@ -138,34 +149,33 @@ public class Vehicle {
             }
         }
 
-        // ---- Anti-collision dans les virages (Option A) ----
-        // A l'entree de la zone du carrefour, le vehicule demande
-        // l'autorisation a l'intersection : s'il existe un vehicule en
-        // conflit deja engage (origine opposee + virage a gauche), il
-        // attend, comme s'il avait un vehicule devant lui.
-        if (insideZone) {
-            if (!entered) {
-                if (!intersection.canEnter(this)) {
-                    return; // un vehicule en conflit est deja dans le carrefour : on attend
-                }
-                intersection.enter(this);
-                entered = true;
+        // ---- Anti-collision : enregistrement PRE-ZONE ----
+        // Le check canEnter() est fait AVANT que le vehicule entre physiquement
+        // dans la zone. Si un conflit existe, le vehicule cede au bord (comme
+        // il le fait avec le feu rouge), de sorte qu'il ne se retrouve jamais
+        // physiquement dans la zone sans etre enregistre dans insideIntersection.
+        if (!insideZone && !entered && !passedIntersection
+                && intersection.wouldEnterIntersection(getFrontX(), getFrontY(), getHeading(), speed)) {
+            if (!intersection.canEnter(this)) {
+                return; // conflit : cede au bord de la zone
             }
+            intersection.enter(this);
+            entered = true;
+        }
 
-            // ---- Detection du point de virage ----
-            // Un AHEAD continue tout droit, donc rien a faire. Pour un
-            // LEFT/RIGHT, le virage a lieu au point de pivot, proche du
-            // centre du carrefour.
-            if (!turned && direction != Direction.AHEAD && intersection.isAtPivot(x, y)) {
+        // ---- Dans la zone ----
+        if (insideZone && entered) {
+            physicallyInside = true;
+            if (!turned && direction != Direction.AHEAD && intersection.isAtPivot(x, y, origin, direction)) {
                 exitSide = intersection.getDestination(origin, direction);
                 turned = true;
             }
-        } else if (entered) {
-            // Le vehicule a quitte la zone du carrefour : il libere sa place
-            // et n'est plus jamais concerne par le feu de sa voie d'origine.
+        } else if (!insideZone && entered && physicallyInside) {
+            // Le vehicule a quitte la zone apres l'avoir reellement traversee.
             intersection.leave(this);
             entered = false;
             passedIntersection = true;
+            physicallyInside = false;
         }
 
         // ---- Deplacement ----
@@ -196,6 +206,22 @@ public class Vehicle {
     // seule fois via Intersection.getDestination() au moment du pivot.
     public Origin getHeading() {
         return turned ? exitSide : oppositeOf(origin);
+    }
+
+    private int getFrontX() {
+        switch (getHeading()) {
+            case East: return x + LENGTH;
+            case West: return x - LENGTH;
+            default:   return x;
+        }
+    }
+
+    private int getFrontY() {
+        switch (getHeading()) {
+            case South: return y + LENGTH;
+            case North: return y - LENGTH;
+            default:    return y;
+        }
     }
 
     private static Origin oppositeOf(Origin origin) {

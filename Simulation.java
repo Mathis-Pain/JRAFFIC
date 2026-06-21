@@ -1,9 +1,11 @@
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Simulation {
+
     public static void update(Intersection intersection) {
         List<Vehicle> allVehicles = new ArrayList<>();
         allVehicles.addAll(intersection.getNorthLane().getVehicles());
@@ -87,23 +89,23 @@ public class Simulation {
         Origin origin = null;
         switch (lane.getType()) {
             case NORTH:
-                x = 250;
+                x = 220;
                 y = 0;
                 origin = Origin.North;
                 break;
             case SOUTH:
-                x = 250;
+                x = 270;
                 y = 500;
                 origin = Origin.South;
                 break;
             case EAST:
                 x = 500;
-                y = 250;
+                y = 220;
                 origin = Origin.East;
                 break;
             case WEST:
                 x = 0;
-                y = 250;
+                y = 270;
                 origin = Origin.West;
                 break;
         }
