@@ -78,7 +78,7 @@ public class Vehicle {
         if (currentLane.getTrafficLight().isRed()) {
             return;
         }
-
+// change de direction au croisement de l'intersection en focntion de la direction choisie
         LaneType type = currentLane.getType();
         if ((type == LaneType.NORTH && y >= 250)
                 || (type == LaneType.SOUTH && y <= 250)
@@ -118,7 +118,7 @@ public class Vehicle {
             }
 
         }
-
+// verifie si le vehicule a la place d'avancer
         if (vehicleAhead != null) {
             type = currentLane.getType();
             int distance;
@@ -131,7 +131,7 @@ public class Vehicle {
                 return;
             }
         }
-
+// fait avancer le vehicule suivant la lane a laquelle il appartient
         switch (currentLane.getType()) {
             case NORTH:
                 y -= speed;
